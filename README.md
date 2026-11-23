@@ -1,6 +1,8 @@
 # poof
 
-The agent controls one 1920×1080 X11 desktop. An Applications bar launches Chromium, Thunar, Mousepad and XTerm. Viewers share one stream of H.264 frames and lossless scroll patches and can reconnect while applications keep running. The guest user owns the applications and their files. The guest CLI works from the existing agent shell.
+The agent controls one X11 desktop. Its default size is 1920×1080. Set `-e POOF_DISPLAY_SIZE=2560x1600` on the container for a larger monitor. An Applications bar launches Chromium, Thunar, Mousepad and XTerm. Viewers can disconnect and return to the same running applications. The Rust streamer sends changed regions as lossless patches and uses indexed images or H.264 when a viewer needs a full frame. The guest user owns the applications and their files. The guest CLI works from the existing agent shell.
+
+On a two-vCPU Boxd guest at 1080p, Chromium presented 60.1 distinct FPS over a 5 Mbps link with 60 ms RTT. Patched voxl presented 47.5 on the same test. During a two-job build the readings were 58.7 and 46.1 FPS. These are ten-second browser samples. [Full comparison and raw results](bench/native/RESULTS.md)
 
 ## Run on one Linux machine
 
@@ -34,7 +36,9 @@ The app prepares the selected computer's SSH key and pinned host key through its
 
 ## Streaming implementation
 
-The Rust service starts one capture worker when viewers connect. XDamage wakes the worker after a paint, and a short poll also catches cursor motion. The C adapter alternates between two MIT-SHM images. The Rust delta encoder compares a new image against its predecessor, estimates vertical translation and emits the changed scanline spans. The worker compresses these spans with LZ4. For changes outside the patch budget it uses libyuv and x264. A recovery keyframe at least once per second lets late and lagging viewers resume. The browser applies pixel patches to a canvas and decodes H.264 via WebCodecs. During continuous motion it allows up to 7 ms for arrival jitter. The first frame after idle is drawn immediately. FFmpeg handles on-demand PNG screenshots. HTTPS viewers use authenticated binary WebSockets so a proxy can forward each frame immediately. The embedded loopback viewer uses an authenticated HTTP stream through the SSH forward. Screenshots require the same guest credential.
+The Rust service shares a capture worker among viewers of each protocol version and stops it when the last viewer disconnects. XDamage wakes the worker after a paint. The capture adapter alternates between two MIT-SHM images. The Rust encoder locates the changed rectangle, estimates its vertical movement, and sends replacement pixels for the parts that differ. Patches use LZ4, with DEFLATE available for larger updates. Desktops with up to 256 colors can use a lossless indexed recovery image. Repeated scanlines share one row in its dictionary. Richer images fall back to libyuv and x264.
+
+A viewer requests a recovery frame when it connects or falls behind. An idle desktop sends a heartbeat every five seconds. The legacy routes keep periodic keyframes for existing readers. The WebCodecs viewer applies each patch in order on the same canvas. During continuous motion it allows up to 7 ms for arrival jitter. The first frame after idle is drawn immediately. FFmpeg handles on-demand PNG screenshots. HTTPS viewers use authenticated binary WebSockets so a proxy can forward each frame immediately. The embedded loopback viewer uses an authenticated HTTP stream through the SSH forward. Screenshots require the same guest credential.
 
 The poof image builds from this directory. The only use of voxl in this experiment is as a separately installed benchmark competitor and a source of common measurement fixtures. The native H.264 fallback uses x264. Its licensing still applies to distribution.
 
@@ -58,7 +62,7 @@ The benchmark builds its own X11 scrolling document. The viewer samples its bina
 
 ## Matched comparison
 
-See [the head-to-head benchmark](bench/BENCHMARK.md) for the common workload, repeated runs, build contention and reproduction instructions. The following sections document earlier prototypes.
+See the [Boxd native and browser comparison](bench/native/RESULTS.md) for 2560×1600 desktop measurements. See [the head-to-head benchmark](bench/BENCHMARK.md) for the common workload, repeated runs, build contention and reproduction instructions. The following sections document earlier prototypes.
 
 ## Native capture results
 

@@ -1,5 +1,7 @@
 # poof vs voxl 0.4.0
 
+This page records the earlier two-CPU affinity experiment. The newer Boxd report covers a real two-vCPU guest, patched voxl, and the other self-hosted servers in Tembo’s comparison. [Boxd measurements](native/RESULTS.md)
+
 On this VM, the independent poof encoder delivered 57.8 and 58.1 distinct scrolling frames/s at 30 and 60 ms RTT. The corresponding voxl medians were 56.4 and 57.1. Individual runs overlap. The clearest advantage was lower tail latency. Median frame age at 30 ms RTT favored voxl.
 
 | Guest load | RTT | poof / voxl distinct FPS | poof / voxl median frame age | poof / voxl p99 frame age |
