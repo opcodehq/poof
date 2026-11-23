@@ -25,7 +25,7 @@ case "$engine" in
   poof) client=("$here/../native-client.py");;
   voxl|selkies) client=("$upstream/nclient.py" "$engine");;
   kasm|novnc) client=("$upstream/kclient.py");;
-  neko|neko-tuned) client=("$upstream/nkclient.py");;
+  neko|neko-tuned) client=("${NEKO_CLIENT:-$upstream/nkclient.py}");;
   sunshine|sunshine-tuned) client=("$upstream/mlclient.py");;
   *) echo "Unknown engine $engine" >&2; exit 2;;
 esac

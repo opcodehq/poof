@@ -57,6 +57,13 @@ Use `scroll` and `anim1080` on `lan`, `10/40` and `5/60`. Use `animfull` on LAN.
 
 For the remaining engines, start their servers with the pinned upstream environment scripts and run the same cell with the matching display, TCP endpoint or Moonlight host. Selkies and KasmVNC use their own X servers. Use the upstream Moonlight patch and pair the client once. Select the advertised 60 FPS x264 profile for tuned Neko and the ultrafast four-thread preset for tuned Sunshine. Use 80% of the link rate for Moonlight on shaped links. [Competitor build and pairing instructions](https://github.com/tembo/voxl/tree/21f194f9e446e7073abd7bbd52e0b397c3800b42/bench)
 
+The Neko confirmation used host ICE on the isolated route and started warm-up on the first decoded frame. To run that client while preserving the upstream checkout:
+
+```sh
+export NEKO_CLIENT=$(mktemp --suffix=.py)
+patch -s -o "$NEKO_CLIENT" "$BENCH_ROOT/bench/nkclient.py" < bench/native/neko-direct.patch
+```
+
 The TCP tests start upstream's deep-queue bottleneck proxy automatically. For WebRTC and Moonlight, use upstream's server-egress netem setup and set `UDP_LINK_CONFIGURED=10/40` or `5/60` to match the cell. The Boxd kernel lacked netem. We routed the client through two Linux TUN devices, serialized server-egress packets by IP size and added the whole RTT as a fixed egress delay, as in upstream's UDP configuration. Pass `CLIENT_NETNS_PID` for an isolated client network namespace and `UDP_SHAPE_FILE` for the active TUN shaper.
 
 For CPU, invoke `python3 bench/native/cpu.py SERVER_PID X_SERVER_PID` when the client starts. It samples seven seconds of process ticks after a three-second delay, including capture children. For idle, leave the viewer connected to a stationary desktop. Use the bundled browser smoke test for the complete human-facing viewer and agent-input path.
