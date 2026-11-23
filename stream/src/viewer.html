@@ -68,8 +68,9 @@
     };
     // Proxies may buffer an HTTP response across multiple frames. Preserve
     // message boundaries across the public TLS hop. Local SSH uses loopback.
+    const streamPrefix = typeof DecompressionStream === "function" ? "/v2" : "";
     async function remoteReader(signal) {
-      const ws = new WebSocket("wss://" + location.host + "/v2/live", ["zuse.monitor.v1", "bearer." + token]);
+      const ws = new WebSocket("wss://" + location.host + streamPrefix + "/live", ["zuse.monitor.v1", "bearer." + token]);
       ws.binaryType = "arraybuffer";
       signal.addEventListener("abort", () => ws.close(), { once: true });
       const stream = new ReadableStream({
@@ -100,7 +101,7 @@
         if (!window.VideoDecoder)
           throw Error("This browser needs WebCodecs. Open in Chrome or Edge.");
         const remote = location.protocol === "https:";
-        const response = await fetch(remote ? "/ready" : "/v2/stream", {
+        const response = await fetch(remote ? "/ready" : streamPrefix + "/stream", {
           headers: { Authorization: "Bearer " + token },
           signal: controller.signal,
         });
