@@ -48,17 +48,17 @@ export PLAYWRIGHT_NODE_MODULES=/tmp/monitor-tools/node_modules/
 export CHROMIUM=/usr/bin/chromium
 export DISPLAY=:91 XAUTHORITY="$HOME/.local/state/zuse-monitor/Xauthority"
 zuse-monitor start
-node ./smoke.mjs /tmp/agent.png /tmp/viewer.png
-bash ./bench.sh
+node ./checks/smoke.mjs /tmp/agent.png /tmp/viewer.png
+bash ./bench/bench.sh
 ```
 
-The smoke test compares guest input with the read-only viewer, exercises viewer reconnect, and captures both views. Set `MONITOR_VIEWER_PORT` to exercise a local SSH forward. On Linux, pipe `zuse-monitor password` to `python3 ./webkit-probe.py /path/to/zuse-webkit <forwarded-port>` from a separate desktop display to test the real Zuse WebKit helper.
+The smoke test compares guest input with the read-only viewer, exercises viewer reconnect, and captures both views. Set `MONITOR_VIEWER_PORT` to exercise a local SSH forward. On Linux, pipe `zuse-monitor password` to `python3 ./checks/webkit-probe.py /path/to/zuse-webkit <forwarded-port>` from a separate desktop display to test the real Zuse WebKit helper.
 
 The benchmark builds its own X11 scrolling document. The viewer samples its binary frame counter at animation-frame boundaries and counts distinct IDs in ten seconds. A local TCP proxy applies a 30 Mbit/s limit and 30 or 60 ms RTT. A separate browser workload measures input-to-visible latency by checking a known color transition. CPU is capture worker process time divided by wall time. Run in an otherwise isolated guest with one capture worker.
 
 ## Matched comparison
 
-See [the head-to-head benchmark](BENCHMARK.md) for the common workload, repeated runs, build contention and reproduction instructions. The following sections document earlier prototypes.
+See [the head-to-head benchmark](bench/BENCHMARK.md) for the common workload, repeated runs, build contention and reproduction instructions. The following sections document earlier prototypes.
 
 ## Native capture results
 

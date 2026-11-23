@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=streamer /usr/local/bin/zuse-capture /usr/local/bin/
 COPY --from=streamer /src/target/release/zuse-display /usr/local/bin/zuse-display
-COPY wallpaper.jpg /usr/local/share/zuse-monitor/wallpaper.jpg
-COPY --chmod=0755 zuse-monitor zuse-apps /usr/local/bin/
+COPY guest/assets/wallpaper.jpg /usr/local/share/zuse-monitor/wallpaper.jpg
+COPY --chmod=0755 guest/zuse-monitor guest/zuse-apps /usr/local/bin/
 ENV DISPLAY=:91 XAUTHORITY=/home/zuse/.local/state/zuse-monitor/Xauthority
 USER 10001:10001

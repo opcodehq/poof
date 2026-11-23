@@ -34,7 +34,7 @@ A separate poof test types 20 times, scrolls 20 times, then animates a CSS backg
 
 ## Reproduce
 
-Use two disposable Linux desktops with the same Chromium binary, X11 display geometry, Node, Playwright, CPU affinity and memory. Start the poof image as described in [README.md](README.md). In the other desktop install voxl 0.4.0 separately and start it read-only on loopback port 6901 with 60 FPS, clipboard and audio disabled, and file transfers set to none. Supply its configured credential in a local file. Pin the X server and already-running streamer threads with `taskset -apc 0,1 PID`, or start each whole guest container with `--cpuset-cpus=0,1`. Run only one measured engine at a time.
+Use two disposable Linux desktops with the same Chromium binary, X11 display geometry, Node, Playwright, CPU affinity and memory. Start the poof image as described in [README.md](../README.md). In the other desktop install voxl 0.4.0 separately and start it read-only on loopback port 6901 with 60 FPS, clipboard and audio disabled, and file transfers set to none. Supply its configured credential in a local file. Pin the X server and already-running streamer threads with `taskset -apc 0,1 PID`, or start each whole guest container with `--cpuset-cpus=0,1`. Run only one measured engine at a time.
 
 The comparison uses the [upstream benchmark fixtures](https://github.com/tembo/voxl/tree/21f194f9e446e7073abd7bbd52e0b397c3800b42/bench) in the benchmark environment. The poof runtime image contains its own server, encoder and viewer. With the guest DISPLAY and XAUTHORITY exported, run:
 
@@ -45,9 +45,9 @@ npm install --prefix /tmp/monitor-tools playwright@1.65.1
 export BENCH_ROOT=/tmp/voxl-reference
 export PLAYWRIGHT_NODE_MODULES=/tmp/monitor-tools/node_modules/
 export CHROMIUM=/usr/bin/chromium
-taskset -c 0,1 bash ./compare.sh zuse 30 60
+taskset -c 0,1 bash ./bench/compare.sh zuse 30 60
 # On the reference guest, set MONITOR_PASSWORD_FILE to its credential file:
-taskset -c 0,1 bash ./compare.sh voxl 30 60
+taskset -c 0,1 bash ./bench/compare.sh voxl 30 60
 ```
 
 The script builds the common workload with a C compiler and X11/Xext headers. Set `MONITOR_LOADGEN_BIN` to the same prebuilt executable on both guests to use an image without a compiler. Repeat the pair three times, reversing engine order on the second round. For build contention, start the following on the same VM immediately before each individual RTT, verify the compiler stayed active throughout the measurement, and wait for it before the next run:
@@ -57,7 +57,7 @@ CARGO_TARGET_DIR="$(mktemp -d)" taskset -c 0,1 cargo build --release --locked --
   --manifest-path ./stream/Cargo.toml
 ```
 
-For the application benchmark, run `bench.sh` from the monitor directory. To verify the Rust encoder's pixel reconstruction independently, run:
+For the application benchmark, run `bench/bench.sh` from the repository root. To verify the Rust encoder's pixel reconstruction independently, run:
 
 ```sh
 rustc --edition=2021 --test -O ./stream/scroll_delta.rs -o /tmp/zuse-patch-tests
