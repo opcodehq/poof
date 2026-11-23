@@ -1,4 +1,4 @@
-# Zuse Display
+# poof
 
 The agent controls one 1920×1080 X11 desktop. An Applications bar launches Chromium, Thunar, Mousepad and XTerm. Viewers share one stream of H.264 frames and lossless scroll patches and can reconnect while applications keep running. The guest user owns the applications and their files. The guest CLI works from the existing agent shell.
 
@@ -36,7 +36,7 @@ The app prepares the selected computer's SSH key and pinned host key through its
 
 The Rust service starts one capture worker when viewers connect. XDamage wakes the worker after a paint, and a short poll also catches cursor motion. The C adapter alternates between two MIT-SHM images. The Rust delta encoder compares a new image against its predecessor, estimates vertical translation and emits the changed scanline spans. The worker compresses these spans with LZ4. For changes outside the patch budget it uses libyuv and x264. A recovery keyframe at least once per second lets late and lagging viewers resume. The browser applies pixel patches to a canvas and decodes H.264 via WebCodecs. During continuous motion it allows up to 7 ms for arrival jitter. The first frame after idle is drawn immediately. FFmpeg handles on-demand PNG screenshots. HTTPS viewers use authenticated binary WebSockets so a proxy can forward each frame immediately. The embedded loopback viewer uses an authenticated HTTP stream through the SSH forward. Screenshots require the same guest credential.
 
-The Zuse image builds from this directory. The only use of voxl in this experiment is as a separately installed benchmark competitor and a source of common measurement fixtures. The native H.264 fallback uses x264. Its licensing still applies to distribution.
+The poof image builds from this directory. The only use of voxl in this experiment is as a separately installed benchmark competitor and a source of common measurement fixtures. The native H.264 fallback uses x264. Its licensing still applies to distribution.
 
 ## Reproduce the checks
 
@@ -81,13 +81,13 @@ The standalone image measured 936 MB uncompressed with Chromium installed. A sep
 
 ## Independent streamer results
 
-Before the native capture worker, the Zuse server used FFmpeg/libx264 for video. These numbers describe that earlier implementation.
+Before the native capture worker, the poof server used FFmpeg/libx264 for video. These numbers describe that earlier implementation.
 
 | Implementation | 1080p distinct scrolling FPS at 30 ms RTT |
 |---|---:|
 | Original voxl baseline | 34.3 |
-| Zuse server with experimental VP8 encoding | 3.1 |
-| Zuse server with low-latency H.264 encoding | 19.7 |
+| poof server with experimental VP8 encoding | 3.1 |
+| poof server with low-latency H.264 encoding | 19.7 |
 
 These are single exploratory measurements with two CPUs shared by the guest and viewer. The H.264 experiment also reached 19.5 distinct scrolling FPS at 60 ms RTT. Encoder settings and delivered image quality differ. The final build also discards duplicate capture timestamps. Those exploratory runs preceded the matched experiment above.
 
