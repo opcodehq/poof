@@ -42,7 +42,15 @@ Boxd used Google Chrome 158.0.8127.88. The capture binary needs the shared libra
 For voxl, build at the pinned revision with the six patches in its x264 derivation. The Boxd test applied them in filename order to x264 commit `c24e06c2e184345ceb33eb20a15d1024d9fd3497`, built the shared library with SIMD assembly enabled, and selected it with `LD_LIBRARY_PATH` for voxl only. Confirm the process maps the patched library and logs direct framebuffer capture. [Upstream x264 build](https://github.com/tembo/voxl/blob/21f194f9e446e7073abd7bbd52e0b397c3800b42/x264.nix)
 
 ```sh
-voxl --addr=127.0.0.1 --port=6958 --framerate=60 --preset=ultrafast \
+git clone https://github.com/mirror/x264 /tmp/poof-bench-x264
+git -C /tmp/poof-bench-x264 checkout c24e06c2e184345ceb33eb20a15d1024d9fd3497
+(
+  cd /tmp/poof-bench-x264
+  for file in "$BENCH_ROOT"/patches/x264/*.patch; do git apply "$file"; done
+  ./configure --enable-shared --disable-cli --prefix=/tmp/poof-bench-libs
+  make -j2 && make install
+)
+LD_LIBRARY_PATH=/tmp/poof-bench-libs/lib voxl --addr=127.0.0.1 --port=6958 --framerate=60 --preset=ultrafast \
   --max-kbps=30000 --audio-enabled=false --enable-basic-auth=false &
 ```
 
@@ -63,6 +71,8 @@ The Neko confirmation used host ICE on the isolated route and started warm-up on
 export NEKO_CLIENT=$(mktemp --suffix=.py)
 patch -s -o "$NEKO_CLIENT" "$BENCH_ROOT/bench/nkclient.py" < bench/native/neko-direct.patch
 ```
+
+Set `NEKO_RECEIVE_BYTES=4194304` for the tuned profile and the default full-screen receive-buffer diagnostic. Other default-profile cells used aiortc’s normal socket size.
 
 The TCP tests start upstream's deep-queue bottleneck proxy automatically. For WebRTC and Moonlight, use upstream's server-egress netem setup and set `UDP_LINK_CONFIGURED=10/40` or `5/60` to match the cell. The Boxd kernel lacked netem. We routed the client through two Linux TUN devices, serialized server-egress packets by IP size and added the whole RTT as a fixed egress delay, as in upstream's UDP configuration. Pass `CLIENT_NETNS_PID` for an isolated client network namespace and `UDP_SHAPE_FILE` for the active TUN shaper.
 

@@ -73,9 +73,10 @@ case "$workload" in
   *) echo "Unknown workload $workload" >&2; exit 2;;
 esac
 inside=()
-if [[ -n ${CLIENT_NETNS_PID:-} ]]; then
+if [[ -n ${CLIENT_NETNS_PID:-} && ( $engine == neko* || $engine == sunshine* ) ]]; then
   inside=(sudo nsenter -t "$CLIENT_NETNS_PID" -n sudo -u "$(id -un)" env
-    "HOME=$HOME" "MOONLIGHT=${MOONLIGHT:-}" "ML_HOME=${ML_HOME:-}" "ML_BITRATE=${ML_BITRATE:-}")
+    "HOME=$HOME" "MOONLIGHT=${MOONLIGHT:-}" "ML_HOME=${ML_HOME:-}" "ML_BITRATE=${ML_BITRATE:-}"
+    "NEKO_RECEIVE_BYTES=${NEKO_RECEIVE_BYTES:-}")
 fi
 result=$(timeout "$((seconds+45))" "${inside[@]}" "$python" "${client[@]}" "$endpoint" "$seconds" "$x" "$y")
 "$python" - "$engine" "$workload" "$link" "$result" <<'PY'
