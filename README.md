@@ -4,6 +4,18 @@ The agent controls one X11 desktop. Its default size is 1920×1080. Set `-e POOF
 
 On a two-vCPU Boxd guest at 1080p, Chromium presented 60.1 distinct FPS over a 5 Mbps link with 60 ms RTT. Patched voxl presented 47.5 on the same test. During a two-job build the readings were 58.7 and 46.1 FPS. These are ten-second browser samples. [Full comparison and raw results](bench/native/RESULTS.md)
 
+## Click around from a Mac
+
+With Docker Desktop running, execute these commands from the checkout.
+
+```sh
+docker compose up -d --build --wait
+docker compose exec -T desktop cat /home/zuse/.local/state/zuse-monitor/vnc-password
+open vnc://127.0.0.1:5905
+```
+
+Enter the printed password in Screen Sharing. Click a dock icon or type in Mousepad. Screen Sharing uses VNC for this interactive demo and shares poof’s X11 display with the agent. The port is bound to the Mac’s loopback address. Run `docker compose stop` when finished.
+
 ## Run on one Linux machine
 
 Build the standalone image. Host networking makes the guest's loopback listener reachable on the Linux host. Use a machine where port 6901 is free.

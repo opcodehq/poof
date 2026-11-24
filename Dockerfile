@@ -16,7 +16,7 @@ COPY stream/Cargo.toml stream/Cargo.lock ./
 COPY stream/src ./src
 RUN cargo build --release --locked
 
-FROM ${GUEST_IMAGE}
+FROM ${GUEST_IMAGE} AS guest
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium chromium-sandbox openbox xvfb xauth xdotool ffmpeg python3-gi gir1.2-gtk-3.0 thunar mousepad xterm libxdamage1 liblz4-1 libdeflate0 libyuv0 libx264-164 \
@@ -27,3 +27,12 @@ COPY guest/assets/wallpaper.jpg /usr/local/share/zuse-monitor/wallpaper.jpg
 COPY --chmod=0755 guest/zuse-monitor guest/zuse-apps /usr/local/bin/
 ENV DISPLAY=:91 XAUTHORITY=/home/zuse/.local/state/zuse-monitor/Xauthority
 USER 10001:10001
+
+FROM guest AS screen-sharing
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends x11vnc && rm -rf /var/lib/apt/lists/*
+USER 10001:10001
+COPY --chmod=755 demo/screen-sharing /usr/local/bin/
+CMD ["screen-sharing"]
+
+FROM guest AS runtime
